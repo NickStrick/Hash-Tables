@@ -1,21 +1,24 @@
 # '''
 # Linked List hash table key/value pair
 # '''
+
+
 class LinkedPair:
     def __init__(self, key, value):
         self.key = key
         self.value = value
         self.next = None
 
+
 class HashTable:
     '''
     A hash table that with `capacity` buckets
     that accepts string keys
     '''
+
     def __init__(self, capacity):
         self.capacity = capacity  # Number of buckets in the hash table
         self.storage = [None] * capacity
-
 
     def _hash(self, key):
         '''
@@ -23,8 +26,9 @@ class HashTable:
 
         You may replace the Python hash with DJB2 as a stretch goal.
         '''
+        # print(key, hash(key))
+        # print(key, hash(key))
         return hash(key)
-
 
     def _hash_djb2(self, key):
         '''
@@ -32,28 +36,49 @@ class HashTable:
 
         OPTIONAL STRETCH: Research and implement DJB2
         '''
-        pass
 
+        hash = 5381
+        for x in key:
+            print(x)
+            # print(1050, 1050 << 1, 1050 << 2,  (hash << 5) + hash, ord(x))
+            hash = ((hash << 5) + hash) + ord(x)
+        # print(hex(hash & 0xFFFFFFFF))
+        return hash & 0xFFFFFFFF
 
     def _hash_mod(self, key):
         '''
         Take an arbitrary key and return a valid integer index
         within the storage capacity of the hash table.
         '''
-        return self._hash(key) % self.capacity
-
+        return self._hash_djb2(key) % self.capacity
 
     def insert(self, key, value):
         '''
         Store the value with the given key.
 
+        # print a warning
         Hash collisions should be handled with Linked List Chaining.
 
         Fill this in.
         '''
-        pass
+        # if self.capacity
+        index = self._hash_mod(key)
 
+        if self.storage[index] != None:
+            currNode = self.storage[index]
+            found = False
+            while not found and currNode != None:
+                if currNode.key == key:
+                    currNode.value = value
+                    found = True
+                elif currNode.next == None:
+                    currNode.next = LinkedPair(key, value)
+                    found = True
+                else:
+                    currNode = currNode.next
 
+        else:
+            self.storage[index] = LinkedPair(key, value)
 
     def remove(self, key):
         '''
@@ -63,8 +88,27 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
+        value = self.retrieve(key)
+        index = self._hash_mod(key)
+        if self.storage[index] == None:
+            print("No value for that key!")
+            return
+        # self.storage[index] = None
+        currNode = self.storage[index]
+        prevNode = None
+        while currNode != None:
+            # print(currNode.key)
+            if currNode.key == key:
+                if prevNode:
+                    prevNode.next = None
+                else:
+                    self.storage[index] = None
+                currNode = None
 
+            else:
+                prevNode = currNode
+                currNode = currNode.next
+        return value
 
     def retrieve(self, key):
         '''
@@ -74,8 +118,18 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
-
+        index = self._hash_mod(key)
+        pair = self.storage[index]
+        if pair:
+            currNode = self.storage[index]
+            while currNode != None:
+                if currNode.key == key:
+                    return currNode.value
+                else:
+                    currNode = currNode.next
+            return None
+        else:
+            return None
 
     def resize(self):
         '''
@@ -84,8 +138,19 @@ class HashTable:
 
         Fill this in.
         '''
-        pass
 
+        self.capacity *= 2
+        new_storage = [None] * self.capacity
+        firstStorage = self.storage
+        self.storage = new_storage
+
+        for pair in firstStorage:
+            if pair is not None:
+                currNode = pair
+                while currNode != None:
+
+                    self.insert(currNode.key, currNode.value)
+                    currNode = currNode.next
 
 
 if __name__ == "__main__":
@@ -113,5 +178,7 @@ if __name__ == "__main__":
     print(ht.retrieve("line_1"))
     print(ht.retrieve("line_2"))
     print(ht.retrieve("line_3"))
+
+    print('h', (ht._hash_djb2("line_2")))
 
     print("")
